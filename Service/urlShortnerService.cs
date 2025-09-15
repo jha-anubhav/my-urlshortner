@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Security.Cryptography;
-using Models;
-using DBContext;
-using Interface;
+using Microsoft.Extensions.Options;
+
+namespace MyUrlShortner
+{
 public class urlShortnerService : IUrlShortner
 {
     private readonly UrlShortenerDbContext _context;
@@ -44,15 +45,19 @@ public class urlShortnerService : IUrlShortner
         // Implement logic to retrieve the original URL from the shortened URL
     }
 
-    public bool IsValidUrl(string url)
-    {
-        // Implement URL validation logic here
-        if(string.IsNullOrEmpty(url))
-            return false;
-        bool isValid = Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult)
-                       && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-        return isValid;
-    }
+   public bool IsValidUrl(string url)
+{
+    if (string.IsNullOrEmpty(url))
+        return false;
+
+    // Prepend http:// if missing
+    if (!url.StartsWith("http://") && !url.StartsWith("https://"))
+        url = "http://" + url;
+
+    bool isValid = Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult)
+                   && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+    return isValid;
+}
     public string GenerateShortCode(long id)
     {
         var shortCode = new StringBuilder();
@@ -66,4 +71,5 @@ public class urlShortnerService : IUrlShortner
 
         return shortCode.ToString();
     }
+}
 }
